@@ -100,7 +100,19 @@ bash build.sh && cd dist && python3 -m http.server 8099
 - **红黑榜**：避雷 + 一般，"别人替你踩过的坑"。
 - **关于**：该播客的创作历程片段（运行时注入集数/条数）。
 
-线上：[picks.zlxlabs.com](https://picks.zlxlabs.com)（Cloudflare Workers 静态托管，push 自动部署）。
+线上：[picks.zlxlabs.com](https://picks.zlxlabs.com)（Cloudflare Workers Static Assets 静态托管）。
+
+**部署是手动的**，push 到 master 不会自动上线：
+
+```bash
+bash build.sh && npx wrangler deploy    # 需要 .env 里的 CLOUDFLARE_API_TOKEN
+```
+
+> Workers Builds（Git 连接）没有接。2026-08-29 核对 CF 部署历史确认：该 Worker 历次部署
+> `source` 全部是 `wrangler`，没有一次是 Git 触发的。此前本文写的"push 自动部署"不成立
+> —— 522cbe2 那条「触发 Cloudflare 重新构建部署」推上去后 36 分钟无反应，最终仍是手动
+> deploy 才上线的。要改成真自动部署，需在 CF 控制台把该 Worker 连上 GitHub 仓库。
+
 本地预览见上方快速开始。
 
 ## 接入第二档播客
