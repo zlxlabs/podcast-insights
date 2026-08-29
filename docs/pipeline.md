@@ -115,7 +115,7 @@
 ## web/ — 纯静态可视化站
 
 - **一个域名、按路径切播客**：`/` 索引首页，`/<key>/` 该播客可视化站；JS/CSS/底图/vendor 铺到 `/assets/` 全站共享。薄壳只注入 `window.__PODCAST__.key`，播客名/条数从 `recommendations_all.json` 读。
-- **零后端、零 Docker**：geocoding 在构建期跑；线上是静态文件。构建用 Node（`build.mjs`，`build.sh` 是 wrapper），Cloudflare Workers Builds 保证有 Node。
+- **零后端、零 Docker**：geocoding 在构建期跑；线上是静态文件。构建用 Node（`build.mjs`，`build.sh` 是 wrapper）——部署要跑 `wrangler`，本身就依赖 Node，不引入新前提。
 - **脚本顺序**：echarts → app.js（定义 `window.podcastApp`）→ alpine。⚠ `app.js` 必须在 Alpine `<script>` 之前，否则 Alpine 自启动微任务先于全局函数定义 → "podcastApp is not defined"。图表库缺失时降级:列表/过滤仍可用。
 - **不要在仓库根直开 /web/**：本地预览统一 `bash build.sh && cd dist && python3 -m http.server 8099`，否则路径和线上漂移。
 - **运行时零第三方**：底图为随站打包的 `web/china.geojson`（阿里 DataV，**审图号 GS(2019)1719**，含南海诸岛/九段线、台湾、藏南/阿克赛钦按 GB 标准）。⚠ 别换非合规 GeoJSON。

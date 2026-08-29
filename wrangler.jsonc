@@ -1,9 +1,19 @@
 {
   // Cloudflare Workers Static Assets：把 build.sh 产出的 dist/ 作为纯静态资源托管。
-  // 配合 Workers Builds（Git 连接）：
-  //   Build command  = bash build.sh
-  //   Deploy command = npx wrangler deploy
+  //
+  // 部署是【手动】的：
+  //   bash build.sh && npx wrangler deploy      # 需要 CLOUDFLARE_API_TOKEN
+  //
+  // ⚠ Workers Builds（Git 连接）没有接：push 到 master 不会触发任何构建。
+  //   2026-08-29 实测确认——该 Worker 在 CF 上的历次部署 source 全部是 wrangler，
+  //   最后一次 Git-触发式部署从未存在过。此前 README 与本文件注释都写着
+  //   「push 自动部署」，是不成立的说法（522cbe2 那条「触发 Cloudflare 重新构建部署」
+  //   的 commit 推上去后 36 分钟无反应，最终仍是手动 wrangler deploy 才上线）。
+  //
   // 无 "main" 入口 = 纯静态资源 Worker（不跑任何服务端代码）。
+  //
+  // name 保持 "feihua"：这只是 Worker 的内部标识（历史遗留），与站点已多播客化无关。
+  // 改名会创建新 Worker，导致已绑定的自定义域名留在旧 Worker 上，得不偿失。
   "name": "feihua",
   "compatibility_date": "2025-03-01",
   "assets": {
