@@ -13,7 +13,7 @@
 6 aggregate ─ recommendations_all.{json,md}     （+ id / pub_date / episodes / 品类归一 / city 规范化）
 7 geocode ─ geo.json                            （city_key → 经纬度，Nominatim）
 8 proofread ─ 校对 extracted 名字 + corrections_review.json （Claude Workflow，Sonnet；对照 description 纠 ASR 听岔）
-→ web/ 纯静态可视化站（Alpine + ECharts，零 build）
+→ web/ 源码经 `bash build.sh` 铺到 dist/（`/` 索引，`/<key>/` 各播客站，assets 共享）
 
 注：步骤8 校对后需重跑 6→7 重生成前端数据。日期/描述来自步骤1 的 episodes.json。
 ```
@@ -114,11 +114,12 @@
 
 ## web/ — 纯静态可视化站
 
-- **零后端、零 Docker**：geocoding 在构建期跑；线上是静态文件，丢 GitHub Pages / nginx 静态目录即可。
-- **零 build**：`index.html` + `app.js` + Alpine/ECharts(**本地 vendor**，`web/vendor/`，不依赖 CDN → 国内网络可用、运行时零第三方)。⚠ `app.js` 必须在 Alpine `<script>` 之前，否则 Alpine 自启动微任务先于 `window.feihua` 定义 → "feihua is not defined"。图表库缺失时降级:列表/过滤仍可用。
-- **零 server ≠ 能 file:// 直开**：ES module + fetch 被 CORS 拦，本地开发 `python -m http.server`。
+- **一个域名、按路径切播客**：`/` 索引首页，`/<key>/` 该播客可视化站；JS/CSS/底图/vendor 铺到 `/assets/` 全站共享。薄壳只注入 `window.__PODCAST__.key`，播客名/条数从 `recommendations_all.json` 读。
+- **零后端、零 Docker**：geocoding 在构建期跑；线上是静态文件。构建用 Node（`build.mjs`，`build.sh` 是 wrapper），Cloudflare Workers Builds 保证有 Node。
+- **脚本顺序**：echarts → app.js（定义 `window.podcastApp`）→ alpine。⚠ `app.js` 必须在 Alpine `<script>` 之前，否则 Alpine 自启动微任务先于全局函数定义 → "podcastApp is not defined"。图表库缺失时降级:列表/过滤仍可用。
+- **不要在仓库根直开 /web/**：本地预览统一 `bash build.sh && cd dist && python3 -m http.server 8099`，否则路径和线上漂移。
 - **运行时零第三方**：底图为随站打包的 `web/china.geojson`（阿里 DataV，**审图号 GS(2019)1719**，含南海诸岛/九段线、台湾、藏南/阿克赛钦按 GB 标准）。⚠ 别换非合规 GeoJSON。
-- 五视图：地图（城市气泡 + 海外单列 + 无定位计数）/ 列表（过滤+搜索+深链+店名跳高德）/ 口味画像 / 红黑榜 / 关于（创作历程）。
+- 五视图：地图（城市气泡 + 海外单列 + 无定位计数）/ 列表（过滤+搜索+深链+店名分源搜索）/ 口味画像 / 红黑榜 / 关于（创作历程片段，`{{EPISODES}}`/`{{TOTAL_ITEMS}}` 由 JS 字符串替换后插入；Alpine 不解析 innerHTML 里的指令）。
 - **筛选维度**：搜索 / 类型 / 主播 / 单集 / **年份** / 省份 / 城市 / 推荐倾向；排序支持集数与**发布日期**新旧。
 - **日期与描述**：卡片显示发布日期；按单集筛选时顶部 banner 展示该集发布日期 + 作者手写简介（数据来自 `recommendations_all.json` 的 `episodes` 数组）；口味画像页有「推荐条数·按月分布」时间线。
 - 国内/海外判定用 geocoder 的国家标注（`display_name` 含「中国」），不用经纬度盒子（曼谷在盒内但属泰国）。
@@ -140,10 +141,12 @@
 
 ## 测试
 
-`python -m pytest`（纯函数：id、品类归一、city 规范化、pub_date/episodes 派生、Nominatim 解析/断点续跑、校对解析/分流/就地应用 + 6_aggregate 输出 golden 回归）。当前 63 例。web 为展示逻辑，走手动/浏览器 QA。
+`python -m pytest`（纯函数：id、品类归一、city 规范化、pub_date/episodes 派生、Nominatim 解析/断点续跑、校对解析/分流/就地应用 + 6_aggregate 输出 golden 回归 + `tests/test_build.py` 多播客构建）。web 展示逻辑另走浏览器 QA。
 
 ## 新增一档播客
 
-1. 写 `config/<key>.json`（key、name、xyz_pid、hosts、name_normalization、category_normalization、city_canonical、geocode_overseas…）。
-2. `.env` 里 `PODCAST=<key>`（或每条命令前临时 `PODCAST=<key>`）。
-3. 跑 1→8（5 与 8 是 Claude Workflow）；步骤5 的 Workflow args 改成对应 baseDir/hosts/total。web 端目前对 feihua 硬编码数据路径，多播客切换见 NOT-in-scope。
+1. 写 `config/<key>.json`（key、name、xyz_pid、hosts、name_normalization、category_normalization、city_canonical、geocode_overseas…；可选 `web.tagline`）。key 不得取 `assets` / `data` / `about`。
+2. 可选：写 `web/about/<key>.html`，集数/条数用 `{{EPISODES}}` / `{{TOTAL_ITEMS}}` 占位。
+3. `.env` 里 `PODCAST=<key>`（或每条命令前临时 `PODCAST=<key>`）。
+4. 跑 1→8（5 与 8 是 Claude Workflow）；步骤5 的 Workflow args 改成对应 baseDir/hosts/total。
+5. `bash build.sh`：只给「config + `data/<key>/{recommendations_all,geo}.json` 都齐」的播客生成 `/<key>/`；缺数据 skip 不红。前端 JS/CSS 不用改。
