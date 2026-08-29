@@ -10,6 +10,19 @@ body{margin:0;font-family:-apple-system,"PingFang SC","Microsoft YaHei",system-u
   border-bottom:1px solid var(--line);position:sticky;top:0;z-index:10}
 .topbar h1{font-size:1.15rem;margin:0}
 .topbar .sub{color:var(--muted);font-size:.82rem}
+.topbar .home-link{margin-left:auto;font-size:.82rem;color:var(--accent);text-decoration:none;white-space:nowrap}
+.topbar .home-link:hover{text-decoration:underline}
+body.home{max-width:720px;margin:0 auto}
+.home-hero{padding:2.2rem 1.2rem 1rem;text-align:center}
+.home-hero h1{margin:0 0 .5rem;font-size:1.6rem}
+.home-lead{color:var(--muted);margin:0;line-height:1.7}
+.home-cards{display:flex;flex-direction:column;gap:.9rem;padding:1rem 1.2rem 2rem}
+a.podcast-card{display:block;background:var(--card);border:1px solid var(--line);border-radius:12px;
+  padding:1.1rem 1.2rem;text-decoration:none;color:inherit}
+a.podcast-card:hover{border-color:var(--accent)}
+a.podcast-card h2{margin:0 0 .35rem;font-size:1.15rem}
+a.podcast-card .tagline{margin:0 0 .4rem;color:#374151;font-size:.92rem}
+a.podcast-card .meta{margin:0;color:var(--muted);font-size:.82rem}
 .banner.err{background:#fde8e8;color:#b91c1c;padding:.6rem 1rem;font-size:.85rem}
 .tabs{display:flex;gap:.25rem;padding:.5rem 1rem 0;background:var(--card);border-bottom:1px solid var(--line);
   overflow-x:auto}

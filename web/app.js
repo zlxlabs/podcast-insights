@@ -1,11 +1,13 @@
-/* 《肥话连篇》推荐可视化 — 纯静态、零 build。
+/* 播客推荐可视化 — 纯静态。
  * Alpine 管外壳/过滤/路由；ECharts 画地图与统计图。库与底图随站打包（合规 GeoJSON）；
  * 唯一的第三方调用是 Cloudflare Web Analytics beacon（隐私友好、免 cookie）。
- * 数据由 pipeline 离线再生。 */
+ * 数据由 pipeline 离线再生；播客 key 由薄壳注入 window.__PODCAST__。 */
 
-const DATA = "../data/feihua/recommendations_all.json";
-const GEO = "../data/feihua/geo.json";
-const CHINA_GEOJSON = "./china.geojson";
+const KEY = (window.__PODCAST__ || {}).key || "";
+const DATA = `/data/${KEY}/recommendations_all.json`;
+const GEO = `/data/${KEY}/geo.json`;
+const CHINA_GEOJSON = "/assets/china.geojson";
+const ABOUT = `/about/${KEY}.html`;
 
 const VERDICT = [
   { k: "重点推荐", color: "#1a7f37" },
@@ -15,7 +17,7 @@ const VERDICT = [
 ];
 const VCOLOR = Object.fromEntries(VERDICT.map((v) => [v.k, v.color]));
 
-function feihua() {
+function podcastApp() {
   return {
     loading: true,
     loadError: "",
@@ -23,6 +25,8 @@ function feihua() {
     epMeta: [],
     geo: {},
     stats: {},
+    aboutHtml: "",
+    aboutOk: false,
     tab: "map",
     tabs: [
       { k: "map", label: "地图" },
@@ -38,6 +42,11 @@ function feihua() {
     charts: { map: null, taste: null, tasteVerdict: null, tasteTimeline: null },
 
     async init() {
+      if (!KEY) {
+        this.loading = false;
+        this.loadError = "未指定播客：缺少 window.__PODCAST__.key，无法加载数据。";
+        return;
+      }
       try {
         const [data, geo, china] = await Promise.all([
           fetch(DATA).then((r) => r.json()),
@@ -48,6 +57,7 @@ function feihua() {
         this.epMeta = data.episodes || [];
         this.stats = data.stats || {};
         this.geo = geo || {};
+        await this.loadAbout();
         // 图表库可选：缺失也不应整站白屏（列表/过滤照常用）。
         if (typeof echarts !== "undefined") echarts.registerMap("china", china);
         else this.loadError = "图表库 echarts 未加载，地图/统计图不可用，列表仍可用。";
@@ -65,7 +75,23 @@ function feihua() {
       } catch (e) {
         this.loading = false;
         this.loadError =
-          "数据加载失败（需经 http 服务访问，勿用 file:// 直接打开；本地跑 python -m http.server）。" + e;
+          "数据加载失败（需经 http 服务访问，勿用 file:// 直接打开；本地跑 bash build.sh && cd dist && python3 -m http.server 8099）。" + e;
+      }
+    },
+
+    async loadAbout() {
+      try {
+        const r = await fetch(ABOUT);
+        if (!r.ok) throw new Error(String(r.status));
+        const raw = await r.text();
+        this.aboutHtml = raw
+          .replaceAll("{{EPISODES}}", this.stats.episodes_with_data ?? 0)
+          .replaceAll("{{TOTAL_ITEMS}}", this.stats.total_items ?? 0);
+        this.aboutOk = true;
+      } catch {
+        this.aboutOk = false;
+        this.aboutHtml = "";
+        this.tabs = this.tabs.filter((t) => t.k !== "about");
       }
     },
 
@@ -437,4 +463,4 @@ function feihua() {
     },
   };
 }
-window.feihua = feihua;
+window.podcastApp = podcastApp;
