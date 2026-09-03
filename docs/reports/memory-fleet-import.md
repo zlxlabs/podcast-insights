@@ -4,7 +4,7 @@
 - **Dispatch-Id**：`dlg-20260903-224843-dfe912`
 - **执行器 / 模型**：cursor / cursor-grok-4.6-high
 - **分支**：`card/podcast-insights-20260904-01`
-- **Commit**：见本节末「交付」；提交后回填 SHA
+- **Commit**：`1acaa7651ea9ffbb4ad579d6a643b4043377f43d`
 - **Base**：`4cf7c2e860c19db06775814ebcd8f06f661d1830`
 
 本会话就是执行器（implementer 角色），全局 AGENTS.md「模型编排」段的主代理委派纪律不适用于本卡。
@@ -37,4 +37,4 @@
 - 不改代码 / 测试 / CI；不改 agent-config 仓。
 - 卡分支提交并推送，不开 PR、不合并。
 
-SHA 回填见本文件后续提交。
+SHA 回填：`1acaa7651ea9ffbb4ad579d6a643b4043377f43d`（本文件 SHA 回填会另记一笔提交）。
