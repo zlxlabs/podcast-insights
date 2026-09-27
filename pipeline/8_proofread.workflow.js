@@ -6,7 +6,9 @@ export const meta = {
 
 // 每集一个 agent：读取该集 proofread 输入（描述 + 抽出的名字/quote），
 // 找出 ASR 明显听岔、且描述或 quote 上下文能定正的名字。保守：拿不准就不改。
-const ROOT = '/home/zlx/projects/personal/podcast-insights'
+const HOME = process.env.HOME
+if (!HOME) throw new Error('HOME environment variable is required')
+const ROOT = HOME + '/projects/personal/podcast-insights'
 
 const SCHEMA = {
   type: 'object',
