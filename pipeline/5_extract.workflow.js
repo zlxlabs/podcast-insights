@@ -17,7 +17,7 @@ let a = args
 if (typeof a === 'string') { try { a = JSON.parse(a) } catch (e) { a = {} } }
 if (!a || typeof a !== 'object') a = {}
 const HOME = process.env.HOME
-const BASE = a.baseDir || (HOME ? HOME + "/projects/personal/podcast-insights/data/feihua" : undefined)
+const BASE = a.baseDir || (HOME ? HOME + '/projects/personal/podcast-insights/data/feihua' : undefined)
 if (!BASE) throw new Error('HOME environment variable is required when args.baseDir is omitted')
 const HOSTS = Array.isArray(a.hosts) && a.hosts.length ? a.hosts : ['肥杰', '惠子']
 const TOTAL = Number(a.total) || 234

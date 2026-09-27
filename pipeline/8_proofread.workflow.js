@@ -8,7 +8,7 @@ export const meta = {
 // 找出 ASR 明显听岔、且描述或 quote 上下文能定正的名字。保守：拿不准就不改。
 const HOME = process.env.HOME
 if (!HOME) throw new Error('HOME environment variable is required')
-const ROOT = HOME + "/projects/personal/podcast-insights"
+const ROOT = HOME + '/projects/personal/podcast-insights'
 
 const SCHEMA = {
   type: 'object',
